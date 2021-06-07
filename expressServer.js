@@ -9,11 +9,31 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+//Generate Short URL value
+function generateRandomString() {
+  const string = Math.random().toString(36).slice(2);
+  return string.slice(2, 8);
+}
+
+//Parse buffer into a string so it can be used
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
+//Post new URLS to our database
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
 
 //Collect URLS on our home page and connect them to views
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
   res.render('urls_index', templateVars);
+});
+
+//Create a new form for submitting URLS to be shortened
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 //Generate individul pages for shortURLS connecting to urls_show.ejs
