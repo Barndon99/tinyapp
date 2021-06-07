@@ -14,7 +14,15 @@ const urlDatabase = {
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
   res.render('urls_index', templateVars);
-})
+});
+
+//Generate individul pages for shortURLS connecting to urls_show.ejs
+app.get("/urls/:shortURL", (req, res) => {
+  console.log(req.params.shortURL);
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  console.log(templateVars);
+  res.render("urls_show", templateVars);
+});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
