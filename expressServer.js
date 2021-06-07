@@ -10,6 +10,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//Collect URLS on our home page and connect them to views
+app.get('/urls', (req, res) => {
+  const templateVars = { urls: urlDatabase};
+  res.render('urls_index', templateVars);
+})
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
