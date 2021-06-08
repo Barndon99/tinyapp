@@ -5,6 +5,7 @@ const PORT = 8080; // default port 8080
 // enable ejs
 app.set('view engine', 'ejs');
 
+//Declare Database variable
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -17,15 +18,7 @@ function generateRandomString() {
 };
 
 //Parse buffer into a string so it can be used
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
-
-//Post new URLS to our database
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);         
-});
+app.use(express.urlencoded({extended: false}));
 
 //Redirects to longURL
 app.get("/u/:shortURL", (req, res) => {
@@ -51,26 +44,32 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log(templateVars);
   res.render("urls_show", templateVars);
 });
-//Delete a tinyURL *This part works, but the button is broken
+
+
+
+//Post new URLS to our database
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);         
+});
+
+
+//Delete a tinyURL *This part works, but the button is broken !! Fixed the button, but have to refresh the page to see changes
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   console.log(urlDatabase);
-  res.redirect('localhost:8080/urls');
+  res.redirect('/urls', 302);
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+
+//Server is listening
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
 
