@@ -23,8 +23,14 @@ app.use(bodyParser.urlencoded({extended: true}));
 //Post new URLS to our database
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;  // Log the POST request body to the console
-  res.redirect(`/urls/${shortURL}`);         // Respond with 'Ok' (we will replace this)
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);         
+});
+
+//Redirects to longURL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[`${req.params.shortURL}`];
+  res.redirect(`${longURL}`);
 });
 
 //Collect URLS on our home page and connect them to views
