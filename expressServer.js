@@ -54,6 +54,7 @@ app.get("/urls/:shortURL", (req, res) => {
 //Delete a tinyURL *This part works, but the button is broken
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
+  console.log(urlDatabase);
   res.redirect('localhost:8080/urls');
 });
 
