@@ -40,13 +40,23 @@ app.get("/urls/new", (req, res) => {
 
 //Generate individul pages for shortURLS connecting to urls_show.ejs
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(req.params.shortURL);
+  //console.log(req.params.shortURL);
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  console.log(templateVars);
+  //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
+//Path for edit buttons
+app.get("/urls/:shortURL/goto", (req, res) => {
+  shortURL = req.params.shortURL;
+  res.redirect(302, `/urls/${shortURL}`);         
+});
 
+// Edits long URL
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.newLongURL;
+  res.redirect(302, '/urls')
+});
 
 //Post new URLS to our database
 app.post("/urls", (req, res) => {
@@ -56,12 +66,13 @@ app.post("/urls", (req, res) => {
 });
 
 
+
 //Delete a tinyURL *This part works, but the button is broken !! Fixed the button, but have to refresh the page to see changes
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
-  console.log(urlDatabase);
-  res.redirect('/urls', 302);
+  res.redirect(302, "/urls");
 });
+
 
 
 
