@@ -22,8 +22,9 @@ app.use(express.urlencoded({extended: false}));
 
 //Redirects to longURL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[`${req.params.shortURL}`];
-  res.redirect(`${longURL}`);
+  const longURL = urlDatabase[req.params.shortURL];
+  console.log(longURL, req.params.shortURL)
+  res.redirect(302, longURL);
 });
 
 //Collect URLS on our home page and connect them to views
