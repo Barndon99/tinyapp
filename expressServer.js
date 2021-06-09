@@ -13,6 +13,31 @@ const urlDatabase = {
 
 };
 
+//Include a users object
+const users = { 
+  "Greg": {
+    id: "userRandomID", 
+    email: "g@g.com", 
+    password: "12345"
+  },
+ "Harold": {
+    id: "user2RandomID", 
+    email: "h@h.com", 
+    password: "12345"
+  }
+};
+
+const checkIfEmailIsAlreadyUsed = function (email) {
+  const keys = Object.keys(users);
+  
+  for (const key of keys) {
+    if (users[key].email === email) {
+      return false;
+    }
+  }
+  return true;
+};
+
 //Generate Short URL value
 function generateRandomString() {
   const string = Math.random().toString(36).slice(2);
@@ -32,26 +57,36 @@ app.get("/u/:shortURL", (req, res) => {
 
 //Collect URLS on our home page and connect them to views
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"]};
+  
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]]};
+  if (!templateVars.user) {
+    templateVars.urls = {};
+  };
   res.render('urls_index', templateVars);
 });
 
 //Create a new form for submitting URLS to be shortened
 app.get("/urls/new", (req, res) => {
-  const templateVars = {username: req.cookies["username"]}
+  const templateVars = {user: users[req.cookies["user_id"]]}
   res.render("urls_new", templateVars);
 });
 
 //Add a registration Page
 app.get("/urls/register", (req, res) => {
-  const templateVars = {username: req.cookies["username"]}
+  const templateVars = {user: users[req.cookies["user_id"]]}
   res.render("url_register", templateVars);
+});
+
+//Add a login Page
+app.get("/urls/login", (req, res) => {
+  const templateVars = {user: users[req.cookies["user_id"]]}
+  res.render("urls_login", templateVars);
 });
 
 //Generate individul pages for shortURLS connecting to urls_show.ejs
 app.get("/urls/:shortURL", (req, res) => {
   //console.log(req.params.shortURL);
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
   //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
@@ -75,16 +110,39 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);         
 });
 
+//Adds new user when they register
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.email;
+  const id = generateRandomString();
+
+  //Ensures an email and password were provided (completely arbitrary since both are already required in ejs file)
+  if (email === "" || password === "") {
+    return res.send("Error must provide an email and password");
+  }
+  //Ensure that the user does not already exist
+  console.log("here")
+  if (!checkIfEmailIsAlreadyUsed(email)) {
+    return res.send(400, "Email already in use");
+  }
+
+  users[id] = { email, password, id };
+  
+  res.cookie("user_id", id);
+
+  res.redirect('/urls')
+});
+
 //Saves a cookie for new users
 app.post("/login", (req, res) => {
   const newUser = req.body.username;
-  res.cookie("username", newUser);
+  res.cookie("user", newUser);
   res.redirect(302, "/urls");
 });
 
 //Adds logout functionality
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect(302, "urls");
 })
 
