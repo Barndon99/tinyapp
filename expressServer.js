@@ -42,6 +42,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+//Add a registration Page
+app.get("/urls/register", (req, res) => {
+  const templateVars = {username: req.cookies["username"]}
+  res.render("url_register", templateVars);
+});
+
 //Generate individul pages for shortURLS connecting to urls_show.ejs
 app.get("/urls/:shortURL", (req, res) => {
   //console.log(req.params.shortURL);
