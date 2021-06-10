@@ -11,7 +11,7 @@ app.use(express.urlencoded({extended: false}));
 
 //Declare Database variable
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "Greg" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
@@ -72,12 +72,31 @@ app.get("/u/:shortURL", (req, res) => {
 
 //Collect URLS on our home page and connect them to views
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies.user_id]};
+  //Pass in ID as a parameter
+  const filteredData = function (urlDatabase) {
+    const filteredURLS = {}
+    for (const url in urlDatabase) {
+      console.log("url_id: ", urlDatabase[url].userID, "user id: ", req.cookies.user_id)
+      console.log("url: ", url, "long url: ", urlDatabase[url].longURL);
+      if (urlDatabase[url].userID === req.cookies.user_id) {
+        console.log("Does if work?");
+        filteredURLS[url] = urlDatabase[url];
+      }
+      console.log("filteredURLS: ", filteredURLS)
+    }
+    console.log("inside: ", urlDatabase);
+    return filteredURLS;
+  };
+  //let newURLS = filteredData(urlDatabase);
+  
+  //console.log("newURLS: ", newURLS)
+  
+  const templateVars = { urls: filteredData(urlDatabase), user: users[req.cookies.user_id]};
 
   if (!templateVars.user) {
     templateVars.urls = {};
   };
-  console.log(urlDatabase);
+  //console.log("urldata: ", newURLS);
   res.render('urls_index', templateVars);
 });
 
@@ -121,7 +140,7 @@ app.get("/urls/:shortURL/goto", (req, res) => {
 
 // Edits long URL
 app.post("/urls/:shortURL", (req, res) => {
-  console.log("req: ", req.params)
+  //Creat if logic to abort if unefined, return 404 or some error
   urlDatabase[req.params.shortURL].longURL = req.body.newLongURL;
   res.redirect(302, '/urls')
 });
@@ -129,9 +148,9 @@ app.post("/urls/:shortURL", (req, res) => {
 //Post new URLS to our database
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  console.log("cookie: ", res.cookies, "longURL", req.body.longURL);
+  //console.log("cookie: ", res.cookies, "longURL", req.body.longURL);
   //This bit is pretty sus we can try again in the morning. User id won't be defined no matter what I do... idk...
-  urlDatabase[shortURL] = {longURL: req.body.longURL, user_id: req.cookies.user_id};
+  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.cookies.user_id};
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);         
 });
