@@ -10,8 +10,10 @@ app.use(cookieParser());
 
 //Declare Database variable
 const urlDatabase = {
-
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+
 
 //Include a users object
 let users = { 
@@ -63,27 +65,29 @@ app.use(express.urlencoded({extended: false}));
 
 //Redirects to longURL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-
-  res.redirect(302, longURL);
+  console.log("params: ", req.params.shortURL);
+  const redirectURL = urlDatabase[req.params.shortURL].longURL;
+  
+  res.redirect(302, redirectURL);
 });
 
 //Collect URLS on our home page and connect them to views
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]]};
+  const templateVars = { urls: urlDatabase, user: users[req.cookies.user_id]};
 
   if (!templateVars.user) {
     templateVars.urls = {};
   };
-
+  console.log(urlDatabase);
   res.render('urls_index', templateVars);
 });
 
 //Create a new form for submitting URLS to be shortened
 app.get("/urls/new", (req, res) => {
   if(!req.cookies["user_id"]) {
-    res.redirect(302, "/urls/login");
+     return res.redirect(302, "/urls/login");
   }
+  
   const templateVars = {user: users[req.cookies["user_id"]]}
   res.render("urls_new", templateVars);
 });
@@ -103,8 +107,8 @@ app.get("/urls/login", (req, res) => {
 
 //Generate individul pages for shortURLS connecting to urls_show.ejs
 app.get("/urls/:shortURL", (req, res) => {
-  //console.log(req.params.shortURL);
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
+  //console.log(urlDatabase[req.params.shortURL].longURL);
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
   //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
@@ -124,7 +128,10 @@ app.post("/urls/:shortURL", (req, res) => {
 //Post new URLS to our database
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  console.log("cookie: ", res.cookies, "longURL", req.body.longURL);
+  //This bit is pretty sus we can try again in the morning. User id won't be defined no matter what I do... idk...
+  urlDatabase[shortURL] = {longURL: req.body.longURL, user_id: req.cookies.user_id};
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);         
 });
 
