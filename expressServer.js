@@ -7,6 +7,7 @@ const PORT = 8080; // default port 8080
 // enable ejs
 app.set('view engine', 'ejs');
 app.use(cookieParser());
+app.use(express.urlencoded({extended: false}));
 
 //Declare Database variable
 const urlDatabase = {
@@ -59,8 +60,6 @@ function generateRandomString() {
   return string.slice(2, 8);
 };
 
-//Parse buffer into a string so it can be used
-app.use(express.urlencoded({extended: false}));
 
 
 //Redirects to longURL
@@ -116,12 +115,14 @@ app.get("/urls/:shortURL", (req, res) => {
 //Path for edit buttons
 app.get("/urls/:shortURL/goto", (req, res) => {
   shortURL = req.params.shortURL;
+
   res.redirect(302, `/urls/${shortURL}`);         
 });
 
 // Edits long URL
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.newLongURL;
+  console.log("req: ", req.params)
+  urlDatabase[req.params.shortURL].longURL = req.body.newLongURL;
   res.redirect(302, '/urls')
 });
 
@@ -155,7 +156,7 @@ app.post("/register", (req, res) => {
   console.log(users[id]);
   res.cookie("user_id", id);
 
-  res.redirect('/urls')
+  res.redirect(302, '/urls')
 });
 
 //Saves a cookie for new users
@@ -183,7 +184,7 @@ app.post("/login", (req, res) => {
 //Adds logout functionality
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect(302, "urls");
+  res.redirect(302, "/urls");
 })
 
 //Delete a tinyURL *This part works, but the button is broken !! Fixed the button, but have to refresh the page to see changes
@@ -192,12 +193,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect(302, "/urls");
 });
 
-
-
-
-
 //Server is listening
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
