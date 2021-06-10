@@ -81,6 +81,9 @@ app.get('/urls', (req, res) => {
 
 //Create a new form for submitting URLS to be shortened
 app.get("/urls/new", (req, res) => {
+  if(!req.cookies["user_id"]) {
+    res.redirect(302, "/urls/login");
+  }
   const templateVars = {user: users[req.cookies["user_id"]]}
   res.render("urls_new", templateVars);
 });
