@@ -14,14 +14,14 @@ const urlDatabase = {
 };
 
 //Include a users object
-const users = { 
+let users = { 
   "Greg": {
-    id: "userRandomID", 
+    user_id: "Greg", 
     email: "g@g.com", 
     password: "12345"
   },
  "Harold": {
-    id: "user2RandomID", 
+    user_id: "Greg", 
     email: "h@h.com", 
     password: "12345"
   }
@@ -32,11 +32,24 @@ const checkIfEmailIsAlreadyUsed = function (email) {
   
   for (const key of keys) {
     if (users[key].email === email) {
-      return false;
+      return users[key].user_id;
     }
   }
-  return true;
+  
+  return null;
 };
+
+const checkPassword = function (password) {
+  const keys = Object.keys(users);
+
+  for (const key of keys) {
+    if (users[key].password === password) {
+      return true;
+    }
+  }
+
+  return false
+}
 
 //Generate Short URL value
 function generateRandomString() {
@@ -51,17 +64,18 @@ app.use(express.urlencoded({extended: false}));
 //Redirects to longURL
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  console.log(longURL, req.params.shortURL)
+
   res.redirect(302, longURL);
 });
 
 //Collect URLS on our home page and connect them to views
 app.get('/urls', (req, res) => {
-  
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]]};
+
   if (!templateVars.user) {
     templateVars.urls = {};
   };
+
   res.render('urls_index', templateVars);
 });
 
@@ -80,6 +94,7 @@ app.get("/urls/register", (req, res) => {
 //Add a login Page
 app.get("/urls/login", (req, res) => {
   const templateVars = {user: users[req.cookies["user_id"]]}
+
   res.render("urls_login", templateVars);
 });
 
@@ -113,7 +128,7 @@ app.post("/urls", (req, res) => {
 //Adds new user when they register
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.email;
+  const password = req.body.password;
   const id = generateRandomString();
 
   //Ensures an email and password were provided (completely arbitrary since both are already required in ejs file)
@@ -121,13 +136,13 @@ app.post("/register", (req, res) => {
     return res.send("Error must provide an email and password");
   }
   //Ensure that the user does not already exist
-  console.log("here")
-  if (!checkIfEmailIsAlreadyUsed(email)) {
+ 
+  if (checkIfEmailIsAlreadyUsed(email)) {
     return res.send(400, "Email already in use");
   }
 
-  users[id] = { email, password, id };
-  
+  users[id] = { email, password, user_id: id };
+  console.log(users[id]);
   res.cookie("user_id", id);
 
   res.redirect('/urls')
@@ -135,8 +150,23 @@ app.post("/register", (req, res) => {
 
 //Saves a cookie for new users
 app.post("/login", (req, res) => {
-  const newUser = req.body.username;
-  res.cookie("user", newUser);
+  const email = req.body.email;
+  const password = req.body.password;
+
+  
+  if (checkIfEmailIsAlreadyUsed(email) !== null) {
+    if (!checkPassword(password)) {
+      console.log("Inside checkPass");
+      return res.send(403, "Passwords do not match");
+    }
+  } else {
+    return res.send(403, "Email doesn't exist");
+  }
+ 
+  const id = checkIfEmailIsAlreadyUsed(email);
+  console.log("id: ", id)
+  res.cookie("user_id", id);
+
   res.redirect(302, "/urls");
 });
 
