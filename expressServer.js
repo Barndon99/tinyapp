@@ -76,15 +76,10 @@ app.get('/urls', (req, res) => {
   const filteredData = function (urlDatabase) {
     const filteredURLS = {}
     for (const url in urlDatabase) {
-      console.log("url_id: ", urlDatabase[url].userID, "user id: ", req.cookies.user_id)
-      console.log("url: ", url, "long url: ", urlDatabase[url].longURL);
       if (urlDatabase[url].userID === req.cookies.user_id) {
-        console.log("Does if work?");
         filteredURLS[url] = urlDatabase[url];
       }
-      console.log("filteredURLS: ", filteredURLS)
     }
-    console.log("inside: ", urlDatabase);
     return filteredURLS;
   };
   //let newURLS = filteredData(urlDatabase);
@@ -134,7 +129,10 @@ app.get("/urls/:shortURL", (req, res) => {
 //Path for edit buttons
 app.get("/urls/:shortURL/goto", (req, res) => {
   shortURL = req.params.shortURL;
-
+  //console.log("urlID: ", urlDatabase[shortURL], "userID: ", req.cookies["user_id"]);
+  if (urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
+    return res.write("Log in to edit Links").redirect(302, "/urls");
+  }
   res.redirect(302, `/urls/${shortURL}`);         
 });
 
@@ -208,8 +206,14 @@ app.post("/logout", (req, res) => {
 
 //Delete a tinyURL *This part works, but the button is broken !! Fixed the button, but have to refresh the page to see changes
 app.post('/urls/:shortURL/delete', (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect(302, "/urls");
+  shortURL = req.params.shortURL;
+  
+  if (urlDatabase[shortURL].userID === req.cookies["user_id"]) {
+    delete urlDatabase[req.params.shortURL];
+    return res.redirect(302, "/urls");
+  }
+  
+  res.write("You can't delete links that don't belong to you.").redirect(302, "/urls");
 });
 
 //Server is listening
