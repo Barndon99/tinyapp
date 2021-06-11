@@ -45,6 +45,10 @@ generateRandomString = () => {
 };
 
 
+//Redirects to homepage
+app.get('/', (req, res) => {
+  res.redirect(302, "/urls");
+});
 
 //Redirects to longURL
 app.get("/u/:shortURL", (req, res) => {
