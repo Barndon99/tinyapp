@@ -1,5 +1,7 @@
 const express = require("express");
-var cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
+const bcrypt = require('bcryptjs');
+
 //Initialize the server
 const app = express();
 const PORT = 8080; // default port 8080
@@ -32,9 +34,10 @@ let users = {
 
 const checkIfEmailIsAlreadyUsed = function (email) {
   const keys = Object.keys(users);
-  
+  console.log("Keys: ", keys)
   for (const key of keys) {
     if (users[key].email === email) {
+      console.log("These are the users: ", users);
       return users[key].user_id;
     }
   }
@@ -158,7 +161,11 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const id = generateRandomString();
-
+  console.log("email: ", email, "password: ", password, "id: ", id);
+  //Hash the password
+  const salt = bcrypt.genSaltSync(5);
+  const hash = bcrypt.hashSync(password, salt);
+  console.log("Register hash: ", hash);
   //Ensures an email and password were provided (completely arbitrary since both are already required in ejs file)
   if (email === "" || password === "") {
     return res.send("Error must provide an email and password");
@@ -169,8 +176,8 @@ app.post("/register", (req, res) => {
     return res.send(400, "Email already in use");
   }
 
-  users[id] = { email, password, user_id: id };
-  console.log(users[id]);
+  users[id] = { email, password: hash, user_id: id };
+  console.log("User ID at registration: ", users[id], "All Users: ", users);
   res.cookie("user_id", id);
 
   res.redirect(302, '/urls')
@@ -180,21 +187,20 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const id = checkIfEmailIsAlreadyUsed(email);
+  console.log("users login:", users, "CheckEmail ID: ", id);
+  const passHashed = users[id].password;
 
-  
   if (checkIfEmailIsAlreadyUsed(email) !== null) {
-    if (!checkPassword(password)) {
+    if (!bcrypt.compareSync(password, passHashed)) {
       console.log("Inside checkPass");
       return res.send(403, "Passwords do not match");
     }
   } else {
     return res.send(403, "Email doesn't exist");
   }
- 
-  const id = checkIfEmailIsAlreadyUsed(email);
-  console.log("id: ", id)
+  
   res.cookie("user_id", id);
-
   res.redirect(302, "/urls");
 });
 
